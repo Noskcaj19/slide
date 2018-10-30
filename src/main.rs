@@ -62,6 +62,7 @@ fn main() {
 
     loop {
         input = con.read_line("> ", &mut |_| {}).unwrap();
+        con.history.push(input.clone().into());
 
         let mut errors = Vec::new();
 
