@@ -1,15 +1,10 @@
-extern crate rug;
-#[macro_use]
 extern crate lalrpop_util;
 extern crate liner;
+extern crate slide;
 
 use liner::Context;
 
-mod ast;
-mod eval;
-mod number;
-
-lalrpop_mod!(pub calc);
+use slide::{ast, calc, eval};
 
 fn error_to_range(err: &ast::TErrorRecovery) -> (usize, usize) {
     use lalrpop_util::ParseError;

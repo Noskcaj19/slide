@@ -7,14 +7,14 @@ pub type TParseError<'input> = lalrpop_util::ParseError<usize, calc::Token<'inpu
 
 pub use number::Number;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     Number(Number),
     Op(Box<Expr>, Opcode, Box<Expr>),
     Error,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Opcode {
     Mul,
     Div,

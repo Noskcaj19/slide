@@ -3,7 +3,7 @@ use rug::{Float as RFloat, Integer};
 use std::fmt::{Display, Error, Formatter};
 use std::ops::{Add, Div, Mul, Sub};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Number {
     Int(Integer),
     Float(RFloat),
