@@ -1,0 +1,14 @@
+[package]
+name = "slide"
+version = "0.1.0"
+authors = ["Noskcaj <kcajdev@gmail.com>"]
+
+[build-dependencies] 
+lalrpop = "0.16.1" 
+
+[dependencies]
+rug = "1.2.2"
+lazy_static = "1.1.0"
+lalrpop-util = "0.16.1"
+regex = "1.0.5"
+liner = "0.4.4"
