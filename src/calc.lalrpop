@@ -1,5 +1,6 @@
 use std::str::FromStr;
 use ast::{Expr, Opcode, ParseError};
+use rug::Integer;
 
 grammar<'err>(errors: &'err mut Vec<ParseError<'input>>);
 
@@ -40,6 +41,6 @@ Term: Box<Expr> = {
     ! => { errors.push(<>); Box::new(Expr::Error) },
 };
 
-Num: i32 = {
-    r"[0-9]+" => i32::from_str(<>).unwrap()
+Num: Integer = {
+    r"[0-9]+" => Integer::from_str_radix(<>, 10).unwrap()
 };
