@@ -1,5 +1,3 @@
-use rug::{Float, Integer};
-
 use std::fmt::{Display, Error, Formatter};
 
 use calc;
@@ -7,13 +5,9 @@ pub type TErrorRecovery<'input> =
     lalrpop_util::ErrorRecovery<usize, calc::Token<'input>, &'static str>;
 pub type TParseError<'input> = lalrpop_util::ParseError<usize, calc::Token<'input>, &'static str>;
 
-#[derive(Debug)]
-pub enum Number {
-    Int(Integer),
-    Float(Float),
-}
+pub use number::Number;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expr {
     Number(Number),
     Op(Box<Expr>, Opcode, Box<Expr>),

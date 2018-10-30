@@ -6,6 +6,8 @@ extern crate liner;
 use liner::Context;
 
 mod ast;
+mod eval;
+mod number;
 
 lalrpop_mod!(pub calc);
 
@@ -62,7 +64,7 @@ fn main() {
 
     loop {
         input = con.read_line("> ", &mut |_| {}).unwrap();
-        con.history.push(input.clone().into());
+        con.history.push(input.clone().into()).unwrap();
 
         let mut errors = Vec::new();
 
@@ -75,9 +77,10 @@ fn main() {
             Ok(expr) => expr,
         };
 
-        println!("=> {:#?}", expr);
         if errors.len() > 0 {
             print_errors(&errors, &input);
+        } else {
+            println!("=> {}", eval::eval(*expr));
         }
     }
 }
