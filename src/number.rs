@@ -27,12 +27,15 @@ macro_rules! impl_op {
             fn $fn(self, other: Self) -> Self {
                 use self::Number::*;
                 match (self, other) {
-                    (Int(i1), Int(i2)) => Int(i1 $sym i2),
-                    (Int(i1), Float(f1)) | (Float(f1), Int(i1)) => {
-                        Number::Float(RFloat::with_val(f1.prec(), i1 $sym f1))
-                    }
-                    (Float(f1), Float(f2)) => {
-                        Number::Float(RFloat::with_val(f1.prec().max(f2.prec()), f1 $sym f2))
+                    (Int(l), Int(r)) => Int(l $sym r),
+                    (Int(l), Float(r)) => {
+                        Number::Float(RFloat::with_val(r.prec(), l $sym r))
+                    },
+                    (Float(l), Int(r)) => {
+                        Number::Float(RFloat::with_val(l.prec(), l $sym r))
+                    },
+                    (Float(l), Float(r)) => {
+                        Number::Float(RFloat::with_val(l.prec().max(r.prec()), l $sym r))
                     }
                 }
             }
