@@ -43,8 +43,11 @@ fn print_errors(errs: &[ast::TErrorRecovery], input: &str) {
             )
         }
     }
-    for l in format!("{:#?}", errs).lines() {
-        println!("=# {}", l);
+    for err in errs {
+        println!("=# =====");
+        for l in format!("{:#?}", err).lines() {
+            println!("=# {}", l);
+        }
     }
 }
 
@@ -63,7 +66,20 @@ fn main() {
     let mut input;
 
     loop {
-        input = con.read_line("> ", &mut |_| {}).unwrap();
+        input = match con.read_line("> ", &mut |_| {}) {
+            Ok(line) => line,
+            Err(ref e) if e.kind() == std::io::ErrorKind::Interrupted => {
+                // ctrl-c
+                // TODO: Figure out how to access the inner value and check it
+                break;
+            }
+            Err(e) => {
+                for l in format!("{:#?}", e).lines() {
+                    println!("=# {}", l);
+                }
+                continue;
+            }
+        };
         con.history.push(input.clone().into()).unwrap();
 
         let mut errors = Vec::new();
