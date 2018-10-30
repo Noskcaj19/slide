@@ -1,10 +1,11 @@
 use rug::{Float, Integer};
 
-use std::fmt::{Debug, Error, Formatter};
+use std::fmt::{Display, Error, Formatter};
 
 use calc;
-use lalrpop_util::ErrorRecovery;
-pub type ParseError<'input> = ErrorRecovery<usize, calc::Token<'input>, &'static str>;
+pub type TErrorRecovery<'input> =
+    lalrpop_util::ErrorRecovery<usize, calc::Token<'input>, &'static str>;
+pub type TParseError<'input> = lalrpop_util::ParseError<usize, calc::Token<'input>, &'static str>;
 
 #[derive(Debug)]
 pub enum Number {
@@ -12,13 +13,14 @@ pub enum Number {
     Float(Float),
 }
 
+#[derive(Debug)]
 pub enum Expr {
     Number(Number),
     Op(Box<Expr>, Opcode, Box<Expr>),
     Error,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum Opcode {
     Mul,
     Div,
@@ -26,18 +28,18 @@ pub enum Opcode {
     Sub,
 }
 
-impl Debug for Expr {
+impl Display for Expr {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::Expr::*;
         match *self {
             Number(ref n) => write!(fmt, "{:?}", n),
             Op(ref l, op, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
-            Error => write!(fmt, "error"),
+            Error => write!(fmt, "[error]"),
         }
     }
 }
 
-impl Debug for Opcode {
+impl Display for Opcode {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::Opcode::*;
         match *self {

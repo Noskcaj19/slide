@@ -9,7 +9,7 @@ mod ast;
 
 lalrpop_mod!(pub calc);
 
-fn error_to_range(err: &ast::ParseError) -> (usize, usize) {
+fn error_to_range(err: &ast::TErrorRecovery) -> (usize, usize) {
     use lalrpop_util::ParseError;
     match err.error {
         ParseError::ExtraToken {
@@ -23,10 +23,11 @@ fn error_to_range(err: &ast::ParseError) -> (usize, usize) {
     }
 }
 
-fn print_errors(errs: &[ast::ParseError], len: usize) {
+fn print_errors(errs: &[ast::TErrorRecovery], input: &str) {
+    println!("=> {}", input);
     for err in errs {
         let (start, end) = match error_to_range(err) {
-            (0, 0) => (len, len),
+            (0, 0) => (input.len(), input.len()),
             l => l,
         };
 
@@ -40,46 +41,42 @@ fn print_errors(errs: &[ast::ParseError], len: usize) {
             )
         }
     }
+    for l in format!("{:#?}", errs).lines() {
+        println!("=# {}", l);
+    }
 }
 
-fn print_parse_error<'input>(
-    error: lalrpop_util::ParseError<usize, calc::Token<'input>, &'static str>,
-    len: usize,
-) {
+fn print_parse_error<'input>(error: ast::TParseError, input: &str) {
     print_errors(
         &[lalrpop_util::ErrorRecovery {
             error,
             dropped_tokens: vec![],
         }],
-        len,
+        input,
     )
 }
 
 fn main() {
     let mut con = Context::new();
+    let mut input;
 
     loop {
-        let res = con.read_line("> ", &mut |_| {}).unwrap();
+        input = con.read_line("> ", &mut |_| {}).unwrap();
 
-        {
-            let mut errors = Vec::new();
-            let expr = calc::ExprsParser::new().parse(&mut errors, &res);
-            let expr = match expr {
-                Err(err) => {
-                    print_parse_error(err, res.len());
-                    continue;
-                }
-                Ok(expr) => expr,
-            };
+        let mut errors = Vec::new();
 
-            println!("=> {:?}", expr);
-            if errors.len() > 0 {
-                print!("=> {}", res);
-                print_errors(&errors, res.len());
-                for l in format!("{:#?}", &errors).lines() {
-                    println!("=# {}", l);
-                }
+        let expr = calc::ExprParser::new().parse(&mut errors, &input);
+        let expr = match expr {
+            Err(err) => {
+                print_parse_error(err, &input);
+                continue;
             }
+            Ok(expr) => expr,
+        };
+
+        println!("=> {:#?}", expr);
+        if errors.len() > 0 {
+            print_errors(&errors, &input);
         }
     }
 }

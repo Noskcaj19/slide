@@ -1,8 +1,7 @@
-use std::str::FromStr;
-use ast::{Number, Expr, Opcode, ParseError};
+use ast::{Number, Expr, Opcode, TErrorRecovery};
 use rug::{Integer, Float};
 
-grammar<'err>(errors: &'err mut Vec<ParseError<'input>>);
+grammar<'err>(errors: &'err mut Vec<TErrorRecovery<'input>>);
 
 pub Exprs = Comma<Expr>;
 
@@ -22,7 +21,7 @@ Tier<Op,NextTier>: Box<Expr> = {
     NextTier
 };
 
-Expr = Tier<ExprOp, Factor>;
+pub Expr = Tier<ExprOp, Factor>;
 Factor = Tier<FactorOp, Term>;
 
 ExprOp: Opcode = {
@@ -51,5 +50,5 @@ Int: Integer = {
 };
 
 Float: Float = {
-    r"[0-9]+\.[0-9]+" => Float::with_val(32, Float::parse(<>).unwrap())
+    r"[0-9]+\.[0-9]+" => Float::with_val(53, Float::parse(<>).unwrap())
 };
