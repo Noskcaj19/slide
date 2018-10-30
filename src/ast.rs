@@ -1,4 +1,4 @@
-use rug::Integer;
+use rug::{Float, Integer};
 
 use std::fmt::{Debug, Error, Formatter};
 
@@ -6,8 +6,14 @@ use calc;
 use lalrpop_util::ErrorRecovery;
 pub type ParseError<'input> = ErrorRecovery<usize, calc::Token<'input>, &'static str>;
 
+#[derive(Debug)]
+pub enum Number {
+    Int(Integer),
+    Float(Float),
+}
+
 pub enum Expr {
-    Number(Integer),
+    Number(Number),
     Op(Box<Expr>, Opcode, Box<Expr>),
     Error,
 }
@@ -24,7 +30,7 @@ impl Debug for Expr {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::Expr::*;
         match *self {
-            Number(ref n) => write!(fmt, "{}", n),
+            Number(ref n) => write!(fmt, "{:?}", n),
             Op(ref l, op, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
             Error => write!(fmt, "error"),
         }
