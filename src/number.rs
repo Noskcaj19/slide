@@ -43,7 +43,24 @@ macro_rules! impl_op {
     };
 }
 
+impl Div for Number {
+    type Output = Self;
+
+    fn div(self, other: Self) -> Self {
+        use self::Number::*;
+        match (self, other) {
+            // TODO: Automatic precision?
+            (Int(l), Int(r)) => Number::Float(RFloat::with_val(
+                53,
+                RFloat::with_val(53, l) / RFloat::with_val(53, r),
+            )),
+            (Int(l), Float(r)) => Number::Float(RFloat::with_val(r.prec(), l / r)),
+            (Float(l), Int(r)) => Number::Float(RFloat::with_val(l.prec(), l / r)),
+            (Float(l), Float(r)) => Number::Float(RFloat::with_val(l.prec().max(r.prec()), l / r)),
+        }
+    }
+}
+
 impl_op!(Add, add, +);
 impl_op!(Sub, sub, -);
 impl_op!(Mul, mul, *);
-impl_op!(Div, div, /);
