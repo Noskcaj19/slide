@@ -37,6 +37,8 @@ FactorOp: Opcode = {
 Term: Box<Expr> = {
     Num => Box::new(Expr::Number(<>)),
     "(" <Expr> ")",
+    "[" <Expr> "]",
+    <o:Term> "(" <i:Term> ")" => Box::new(Expr::Op(o, Opcode::Mul, i)),
     ! => { errors.push(<>); Box::new(Expr::Error) },
 };
 
