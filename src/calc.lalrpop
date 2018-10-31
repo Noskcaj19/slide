@@ -6,7 +6,7 @@ grammar<'err>(errors: &'err mut Vec<TErrorRecovery<'input>>);
 pub Exprs = Comma<Expr>;
 
 Comma<T>: Vec<T> = {
-    <v:(<T> ",")*> <e:T?> => match e { // (1)
+    <v:(<T> ",")*> <e:T?> => match e {
         None=> v,
         Some(e) => {
             let mut v = v;
@@ -16,29 +16,24 @@ Comma<T>: Vec<T> = {
     }
 };
 
-Tier<Op,NextTier>: Box<Expr> = {
-    Tier<Op,NextTier> Op NextTier => Box::new(Expr::Op(<>)),
-    NextTier
+// Tier2
+pub Expr = {
+    <l:Expr> "-" <r:Tier1> => Box::new(Expr::Op(l, Opcode::Sub, r)),
+    <l:Expr> "+" <r:Tier1> => Box::new(Expr::Op(l, Opcode::Add, r)),
+    Tier1,
 };
 
-pub Expr = Tier<ExprOp, Factor>;
-Factor = Tier<FactorOp, Term>;
-
-ExprOp: Opcode = {
-    "+" => Opcode::Add,
-    "-" => Opcode::Sub,
-};
-
-FactorOp: Opcode = {
-    "*" => Opcode::Mul,
-    "/" => Opcode::Div,
+Tier1 = {
+    <l:Tier1> "*" <r:Term> => Box::new(Expr::Op(l, Opcode::Mul, r)),
+    <o:Tier1> "(" <i:Term> ")" => Box::new(Expr::Op(o, Opcode::Mul, i)),
+    <l:Tier1> "/" <r:Term> => Box::new(Expr::Op(l, Opcode::Div, r)),
+    Term,
 };
 
 Term: Box<Expr> = {
     Num => Box::new(Expr::Number(<>)),
     "(" <Expr> ")",
     "[" <Expr> "]",
-    <o:Term> "(" <i:Term> ")" => Box::new(Expr::Op(o, Opcode::Mul, i)),
     ! => { errors.push(<>); Box::new(Expr::Error) },
 };
 
