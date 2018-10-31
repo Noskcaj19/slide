@@ -48,9 +48,9 @@ Num: Number = {
 };
 
 Int: Integer = {
-    r"0b[0-9_]+" => Integer::from_str_radix(&(<>)[2..], 2).unwrap(),
-    r"0x[0-9_]+" => Integer::from_str_radix(&(<>)[2..], 16).unwrap(),
-    r"[0-9_]+h" => Integer::from_str_radix(&(<>)[..<>.len()-1], 16).unwrap(),
+    r"0b[01_]+" => Integer::from_str_radix(&(<>)[2..], 2).unwrap(),
+    r"0x[0-9A-Fa-f_]+" => Integer::from_str_radix(&(<>)[2..], 16).unwrap(),
+    r"[0-9A-Fa-f_]+h" => Integer::from_str_radix(&(<>)[..<>.len()-1], 16).unwrap(),
     r"-?[0-9_]+" => Integer::from_str_radix(<>, 10).unwrap()
 };
 
