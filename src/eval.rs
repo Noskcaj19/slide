@@ -1,5 +1,7 @@
 use ast;
 
+use rug::ops::Pow;
+
 fn eval_op(lh: ast::Expr, op: ast::Opcode, rh: ast::Expr) -> ast::Number {
     use ast::Opcode::*;
     match op {
@@ -7,6 +9,7 @@ fn eval_op(lh: ast::Expr, op: ast::Opcode, rh: ast::Expr) -> ast::Number {
         Sub => eval(lh) - eval(rh),
         Mul => eval(lh) * eval(rh),
         Div => eval(lh) / eval(rh),
+        Pow => eval(lh).pow(eval(rh)),
     }
 }
 

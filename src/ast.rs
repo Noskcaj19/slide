@@ -20,6 +20,7 @@ pub enum Opcode {
     Div,
     Add,
     Sub,
+    Pow,
 }
 
 impl Display for Expr {
@@ -41,6 +42,7 @@ impl Display for Opcode {
             Div => write!(fmt, "/"),
             Add => write!(fmt, "+"),
             Sub => write!(fmt, "-"),
+            Pow => write!(fmt, "**"),
         }
     }
 }

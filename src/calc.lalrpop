@@ -16,19 +16,24 @@ Comma<T>: Vec<T> = {
     }
 };
 
-// Tier2
+// Tier3
 pub Expr = {
-    <l:Expr> "-" <r:Tier1> => Box::new(Expr::Op(l, Opcode::Sub, r)),
-    <l:Expr> "+" <r:Tier1> => Box::new(Expr::Op(l, Opcode::Add, r)),
+    <l:Expr> "-" <r:Tier2> => Box::new(Expr::Op(l, Opcode::Sub, r)),
+    <l:Expr> "+" <r:Tier2> => Box::new(Expr::Op(l, Opcode::Add, r)),
+    Tier2,
+};
+
+Tier2 = {
+    <l:Tier2> "*" <r:Tier1> => Box::new(Expr::Op(l, Opcode::Mul, r)),
+    <o:Tier2> "(" <i:Tier1> ")" => Box::new(Expr::Op(o, Opcode::Mul, i)),
+    <l:Tier2> "/" <r:Tier1> => Box::new(Expr::Op(l, Opcode::Div, r)),
     Tier1,
 };
 
 Tier1 = {
-    <l:Tier1> "*" <r:Term> => Box::new(Expr::Op(l, Opcode::Mul, r)),
-    <o:Tier1> "(" <i:Term> ")" => Box::new(Expr::Op(o, Opcode::Mul, i)),
-    <l:Tier1> "/" <r:Term> => Box::new(Expr::Op(l, Opcode::Div, r)),
+    <l:Tier1> "**" <r:Term> => Box::new(Expr::Op(l, Opcode::Pow, r)),
     Term,
-};
+}
 
 Term: Box<Expr> = {
     Num => Box::new(Expr::Number(<>)),

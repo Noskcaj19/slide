@@ -1,4 +1,5 @@
-use rug::{Float as RFloat, Integer};
+use rug::float::Round;
+use rug::{self, Float as RFloat, Integer};
 
 use std::fmt::{Display, Error, Formatter};
 use std::ops::{Add, Div, Mul, Sub};
@@ -57,6 +58,29 @@ impl Div for Number {
             (Int(l), Float(r)) => Number::Float(RFloat::with_val(r.prec(), l / r)),
             (Float(l), Int(r)) => Number::Float(RFloat::with_val(l.prec(), l / r)),
             (Float(l), Float(r)) => Number::Float(RFloat::with_val(l.prec().max(r.prec()), l / r)),
+        }
+    }
+}
+
+impl rug::ops::Pow<Number> for Number {
+    type Output = Self;
+
+    fn pow(self, other: Self) -> Self {
+        use self::Number::*;
+        match (self, other) {
+            // TODO: Correct these, why are there missing implementations?
+            (Int(l), Int(r)) => Number::Int(l.pow(r.to_u32().unwrap_or(std::u32::MAX))),
+            (Int(l), Float(r)) => Number::Float(RFloat::with_val(
+                r.prec(),
+                l.pow(
+                    r.to_u32_saturating_round(Round::Nearest)
+                        .unwrap_or(std::u32::MAX),
+                ),
+            )),
+            (Float(l), Int(r)) => Number::Float(RFloat::with_val(l.prec(), l.pow(r))),
+            (Float(l), Float(r)) => {
+                Number::Float(RFloat::with_val(l.prec().max(r.prec()), l.pow(r)))
+            }
         }
     }
 }
