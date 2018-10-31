@@ -2,7 +2,7 @@ use rug::float::Round;
 use rug::{self, Float as RFloat, Integer};
 
 use std::fmt::{Display, Error, Formatter};
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Shl, Shr, Sub};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Number {
@@ -81,6 +81,60 @@ impl rug::ops::Pow<Number> for Number {
             (Float(l), Float(r)) => {
                 Number::Float(RFloat::with_val(l.prec().max(r.prec()), l.pow(r)))
             }
+        }
+    }
+}
+
+impl Shl<Number> for Number {
+    type Output = Self;
+
+    fn shl(self, other: Self) -> Self {
+        use self::Number::*;
+        match (self, other) {
+            (Int(l), Int(r)) => Int(l << r.to_u32().unwrap_or(std::u32::MAX)),
+            (Int(l), Float(r)) => Number::Float(RFloat::with_val(
+                r.prec(),
+                l << r
+                    .to_u32_saturating_round(Round::Nearest)
+                    .unwrap_or(std::u32::MAX),
+            )),
+            (Float(l), Int(r)) => Number::Float(RFloat::with_val(
+                l.prec(),
+                l << r.to_u32().unwrap_or(std::u32::MAX),
+            )),
+            (Float(l), Float(r)) => Number::Float(RFloat::with_val(
+                l.prec().max(r.prec()),
+                l << r
+                    .to_u32_saturating_round(Round::Nearest)
+                    .unwrap_or(std::u32::MAX),
+            )),
+        }
+    }
+}
+
+impl Shr<Number> for Number {
+    type Output = Self;
+
+    fn shr(self, other: Self) -> Self {
+        use self::Number::*;
+        match (self, other) {
+            (Int(l), Int(r)) => Int(l >> r.to_u32().unwrap_or(std::u32::MAX)),
+            (Int(l), Float(r)) => Number::Float(RFloat::with_val(
+                r.prec(),
+                l >> r
+                    .to_u32_saturating_round(Round::Nearest)
+                    .unwrap_or(std::u32::MAX),
+            )),
+            (Float(l), Int(r)) => Number::Float(RFloat::with_val(
+                l.prec(),
+                l >> r.to_u32().unwrap_or(std::u32::MAX),
+            )),
+            (Float(l), Float(r)) => Number::Float(RFloat::with_val(
+                l.prec().max(r.prec()),
+                l >> r
+                    .to_u32_saturating_round(Round::Nearest)
+                    .unwrap_or(std::u32::MAX),
+            )),
         }
     }
 }

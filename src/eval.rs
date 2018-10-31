@@ -10,6 +10,8 @@ fn eval_op(lh: ast::Expr, op: ast::Opcode, rh: ast::Expr) -> ast::Number {
         Mul => eval(lh) * eval(rh),
         Div => eval(lh) / eval(rh),
         Pow => eval(lh).pow(eval(rh)),
+        Shl => eval(lh) << eval(rh),
+        Shr => eval(lh) >> eval(rh),
     }
 }
 

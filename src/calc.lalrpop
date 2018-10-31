@@ -16,10 +16,17 @@ Comma<T>: Vec<T> = {
     }
 };
 
-// Tier3
+// Tier4
 pub Expr = {
-    <l:Expr> "-" <r:Tier2> => Box::new(Expr::Op(l, Opcode::Sub, r)),
-    <l:Expr> "+" <r:Tier2> => Box::new(Expr::Op(l, Opcode::Add, r)),
+    <l:Expr> "<<" <r:Tier3> => Box::new(Expr::Op(l, Opcode::Shl, r)),
+    <l:Expr> ">>" <r:Tier3> => Box::new(Expr::Op(l, Opcode::Shr, r)),
+    Tier3,
+};
+
+
+pub Tier3 = {
+    <l:Tier3> "-" <r:Tier2> => Box::new(Expr::Op(l, Opcode::Sub, r)),
+    <l:Tier3> "+" <r:Tier2> => Box::new(Expr::Op(l, Opcode::Add, r)),
     Tier2,
 };
 
