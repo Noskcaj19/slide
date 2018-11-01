@@ -23,27 +23,49 @@ fn error_to_range(err: &ast::TErrorRecovery) -> (usize, usize) {
 }
 
 struct SlideContext {
-    prev_input: String,
-    eval_context: eval::EvalContext,
+    input: String,
+    line_ctx: LineContext,
+    eval_ctx: eval::EvalContext,
 }
 
 impl SlideContext {
     fn new() -> SlideContext {
         SlideContext {
-            prev_input: "".to_string(),
-            eval_context: eval::EvalContext::new(),
+            input: "".to_string(),
+            line_ctx: LineContext::new(),
+            eval_ctx: eval::EvalContext::new(),
+        }
+    }
+
+    pub fn eval_line(&mut self, input: &str) {
+        self.input = input.to_owned();
+        self.line_ctx.history.push(input.clone().into()).unwrap();
+        let mut errors = Vec::new();
+
+        let expr = match calc::ExprParser::new().parse(&mut errors, input) {
+            Err(err) => {
+                self.print_parse_error(err);
+                return;
+            }
+            Ok(expr) => expr,
+        };
+
+        if errors.len() > 0 {
+            self.print_errors(&errors);
+        } else {
+            println!("=> {}", self.eval(*expr));
         }
     }
 
     fn eval(&mut self, expr: ast::Expr) -> &ast::Number {
-        self.eval_context.eval(expr)
+        self.eval_ctx.eval(expr)
     }
 
     fn print_errors(&self, errs: &[ast::TErrorRecovery]) {
-        println!("=> {}", self.prev_input);
+        println!("=> {}", self.input);
         for err in errs {
             let (start, end) = match error_to_range(err) {
-                (0, 0) => (self.prev_input.len(), self.prev_input.len()),
+                (0, 0) => (self.input.len(), self.input.len()),
                 l => l,
             };
 
@@ -65,7 +87,7 @@ impl SlideContext {
         }
     }
 
-    fn print_parse_error<'input>(&self, error: ast::TParseError) {
+    fn print_parse_error(&self, error: ast::TParseError) {
         self.print_errors(&[lalrpop_util::ErrorRecovery {
             error,
             dropped_tokens: vec![],
@@ -109,24 +131,6 @@ fn main() {
                 continue;
             }
         };
-        slide_ctx.prev_input = input.clone();
-        line_ctx.history.push(input.clone().into()).unwrap();
-
-        let mut errors = Vec::new();
-
-        let expr = calc::ExprParser::new().parse(&mut errors, &input);
-        let expr = match expr {
-            Err(err) => {
-                slide_ctx.print_parse_error(err);
-                continue;
-            }
-            Ok(expr) => expr,
-        };
-
-        if errors.len() > 0 {
-            slide_ctx.print_errors(&errors);
-        } else {
-            println!("=> {}", slide_ctx.eval(*expr));
-        }
+        slide_ctx.eval_line(&input)
     }
 }
