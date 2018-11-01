@@ -77,23 +77,10 @@ impl SlideContext {
         if event.editor.cursor() != 0 {
             return;
         }
-        let input = self.prev_input.clone();
         match event.kind {
             EventKind::BeforeKey(Key::Char(ch)) => match ch {
                 '>' | '<' | '-' | '+' | '*' | '(' | '/' => {
-                    let result = {
-                        let mut errors = Vec::new();
-                        // TODO: Switch to prev val char
-                        let expr = match calc::ExprParser::new().parse(&mut errors, &input) {
-                            Ok(e) => e,
-                            Err(_) => return,
-                        };
-                        if errors.len() != 0 {
-                            return;
-                        }
-                        self.eval(*expr)
-                    };
-                    let _ = event.editor.insert_str_after_cursor(&result.to_string());
+                    event.editor.insert_str_after_cursor("#").unwrap();
                 }
                 _ => {}
             },

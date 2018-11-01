@@ -46,6 +46,7 @@ Term: Box<Expr> = {
     Num => Box::new(Expr::Number(<>)),
     "(" <Expr> ")",
     "[" <Expr> "]",
+    "#" => Box::new(Expr::Prev),
     ! => { errors.push(<>); Box::new(Expr::Error) },
 };
 

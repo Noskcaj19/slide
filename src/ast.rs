@@ -9,6 +9,7 @@ pub use number::Number;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
+    Prev,
     Number(Number),
     Op(Box<Expr>, Opcode, Box<Expr>),
     Error,
@@ -29,6 +30,7 @@ impl Display for Expr {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::Expr::*;
         match *self {
+            Prev => write!(fmt, "#"),
             Number(ref n) => write!(fmt, "{:?}", n),
             Op(ref l, op, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
             Error => write!(fmt, "[error]"),
