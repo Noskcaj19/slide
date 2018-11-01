@@ -3,7 +3,7 @@ extern crate liner;
 extern crate slide;
 extern crate termion;
 
-use liner::{Context, Event, EventKind};
+use liner::{Context as LineContext, Event, EventKind};
 use termion::event::Key;
 
 use slide::{ast, calc, eval};
@@ -22,81 +22,93 @@ fn error_to_range(err: &ast::TErrorRecovery) -> (usize, usize) {
     }
 }
 
-fn print_errors(errs: &[ast::TErrorRecovery], input: &str) {
-    println!("=> {}", input);
-    for err in errs {
-        let (start, end) = match error_to_range(err) {
-            (0, 0) => (input.len(), input.len()),
-            l => l,
-        };
-
-        if end.saturating_sub(start) == 0 {
-            println!("   {}^", " ".repeat(start.saturating_sub(1)))
-        } else {
-            println!(
-                "   {}{}",
-                " ".repeat(start.saturating_sub(1)),
-                "~".repeat((end.saturating_sub(start)) + 1)
-            )
-        }
-    }
-    for err in errs {
-        println!("=# =====");
-        for l in format!("{:#?}", err).lines() {
-            println!("=# {}", l);
-        }
-    }
+struct SlideContext {
+    prev_input: String,
+    eval_context: eval::EvalContext,
 }
 
-fn print_parse_error<'input>(error: ast::TParseError, input: &str) {
-    print_errors(
-        &[lalrpop_util::ErrorRecovery {
+impl SlideContext {
+    fn new() -> SlideContext {
+        SlideContext {
+            prev_input: "".to_string(),
+            eval_context: eval::EvalContext::new(),
+        }
+    }
+
+    fn eval(&mut self, expr: ast::Expr) -> &ast::Number {
+        self.eval_context.eval(expr)
+    }
+
+    fn print_errors(&self, errs: &[ast::TErrorRecovery]) {
+        println!("=> {}", self.prev_input);
+        for err in errs {
+            let (start, end) = match error_to_range(err) {
+                (0, 0) => (self.prev_input.len(), self.prev_input.len()),
+                l => l,
+            };
+
+            if end.saturating_sub(start) == 0 {
+                println!("   {}^", " ".repeat(start.saturating_sub(1)))
+            } else {
+                println!(
+                    "   {}{}",
+                    " ".repeat(start.saturating_sub(1)),
+                    "~".repeat((end.saturating_sub(start)) + 1)
+                )
+            }
+        }
+        for err in errs {
+            println!("=# =====");
+            for l in format!("{:#?}", err).lines() {
+                println!("=# {}", l);
+            }
+        }
+    }
+
+    fn print_parse_error<'input>(&self, error: ast::TParseError) {
+        self.print_errors(&[lalrpop_util::ErrorRecovery {
             error,
             dropped_tokens: vec![],
-        }],
-        input,
-    )
-}
-
-// TODO: Currently a hack
-fn handle_event<W: std::io::Write>(event: Event<W>) {
-    if event.editor.cursor() != 0 {
-        return;
+        }])
     }
-    let result = {
-        let ctx = event.editor.context();
-        let last_expr = match ctx.history.buffers.get(ctx.history.len().saturating_sub(1)) {
-            Some(l) => l,
-            None => return,
-        };
-        let input = &last_expr.lines()[0];
-        let mut errors = Vec::new();
-        let expr = match calc::ExprParser::new().parse(&mut errors, input) {
-            Ok(e) => e,
-            Err(_) => return,
-        };
-        if errors.len() != 0 {
+
+    // TODO: Currently a hack
+    fn handle_event<W: std::io::Write>(&mut self, event: Event<W>) {
+        if event.editor.cursor() != 0 {
             return;
         }
-        eval::eval(*expr)
-    };
-    match event.kind {
-        EventKind::BeforeKey(Key::Char(ch)) => match ch {
-            '>' | '<' | '-' | '+' | '*' | '(' | '/' => {
-                let _ = event.editor.insert_str_after_cursor(&format!("{}", result));
-            }
+        let input = self.prev_input.clone();
+        match event.kind {
+            EventKind::BeforeKey(Key::Char(ch)) => match ch {
+                '>' | '<' | '-' | '+' | '*' | '(' | '/' => {
+                    let result = {
+                        let mut errors = Vec::new();
+                        // TODO: Switch to prev val char
+                        let expr = match calc::ExprParser::new().parse(&mut errors, &input) {
+                            Ok(e) => e,
+                            Err(_) => return,
+                        };
+                        if errors.len() != 0 {
+                            return;
+                        }
+                        self.eval(*expr)
+                    };
+                    let _ = event.editor.insert_str_after_cursor(&result.to_string());
+                }
+                _ => {}
+            },
             _ => {}
-        },
-        _ => {}
-    };
+        };
+    }
 }
 
 fn main() {
-    let mut con = Context::new();
     let mut input;
+    let mut line_ctx = LineContext::new();
+    let mut slide_ctx = SlideContext::new();
 
     loop {
-        input = match con.read_line("> ", &mut handle_event) {
+        input = match line_ctx.read_line("> ", &mut |e| slide_ctx.handle_event(e)) {
             Ok(line) => line,
             Err(ref e) if e.kind() == std::io::ErrorKind::Interrupted => {
                 // ctrl-c
@@ -110,23 +122,24 @@ fn main() {
                 continue;
             }
         };
-        con.history.push(input.clone().into()).unwrap();
+        slide_ctx.prev_input = input.clone();
+        line_ctx.history.push(input.clone().into()).unwrap();
 
         let mut errors = Vec::new();
 
         let expr = calc::ExprParser::new().parse(&mut errors, &input);
         let expr = match expr {
             Err(err) => {
-                print_parse_error(err, &input);
+                slide_ctx.print_parse_error(err);
                 continue;
             }
             Ok(expr) => expr,
         };
 
         if errors.len() > 0 {
-            print_errors(&errors, &input);
+            slide_ctx.print_errors(&errors);
         } else {
-            println!("=> {}", eval::eval(*expr));
+            println!("=> {}", slide_ctx.eval(*expr));
         }
     }
 }
