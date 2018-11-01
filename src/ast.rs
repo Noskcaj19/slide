@@ -10,6 +10,7 @@ pub use number::Number;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     Prev,
+    Ident(String),
     Number(Number),
     Op(Box<Expr>, Opcode, Box<Expr>),
     Error,
@@ -31,6 +32,7 @@ impl Display for Expr {
         use self::Expr::*;
         match *self {
             Prev => write!(fmt, "#"),
+            Ident(ref n) => write!(fmt, "{}", n),
             Number(ref n) => write!(fmt, "{:?}", n),
             Op(ref l, op, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
             Error => write!(fmt, "[error]"),

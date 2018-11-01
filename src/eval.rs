@@ -2,13 +2,23 @@ use ast;
 
 use rug::ops::Pow;
 
+use std::collections::HashMap;
+use std::f64::consts::PI;
+
 pub struct EvalContext {
     pub last_result: Option<ast::Number>,
+    values: HashMap<String, ast::Number>,
 }
 
 impl EvalContext {
     pub fn new() -> EvalContext {
-        EvalContext { last_result: None }
+        let values = vec![("pi".to_string(), ::rug::Float::with_val(53, PI).into())]
+            .into_iter()
+            .collect();
+        EvalContext {
+            last_result: None,
+            values,
+        }
     }
 
     fn eval_op(&mut self, lh: ast::Expr, op: ast::Opcode, rh: ast::Expr) -> ast::Number {
@@ -27,10 +37,8 @@ impl EvalContext {
     fn eval_internal(&mut self, expr: ast::Expr) -> ast::Number {
         use ast::Expr::*;
         match expr {
-            Prev => self
-                .last_result
-                .clone()
-                .unwrap_or_else(|| ast::Number::Int(::rug::Integer::from(0))),
+            Prev => self.last_result.clone().unwrap_or_default(),
+            Ident(key) => self.values.get(&key).cloned().unwrap(),
             Number(num) => num,
             Error => panic!("Error handling not yet implemented"),
             Op(l, o, r) => self.eval_op(*l.clone(), o, *r.clone()),

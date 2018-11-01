@@ -10,6 +10,24 @@ pub enum Number {
     Float(RFloat),
 }
 
+impl Default for Number {
+    fn default() -> Number {
+        Number::Int(Integer::from(0))
+    }
+}
+
+impl From<RFloat> for Number {
+    fn from(x: RFloat) -> Number {
+        Number::Float(x)
+    }
+}
+
+impl From<Integer> for Number {
+    fn from(x: Integer) -> Number {
+        Number::Int(x)
+    }
+}
+
 impl Display for Number {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::Number::*;

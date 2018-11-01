@@ -47,6 +47,7 @@ Term: Box<Expr> = {
     "(" <Expr> ")",
     "[" <Expr> "]",
     "#" => Box::new(Expr::Prev),
+    r"[A-z][A-z0-9]*" => Box::new(Expr::Ident(<>.to_string())),
     ! => { errors.push(<>); Box::new(Expr::Error) },
 };
 
@@ -66,3 +67,10 @@ Float: Float = {
     r"-?\.[0-9_]+" => Float::with_val(53, Float::parse(<>).unwrap()),
     r"-?[0-9_]+\.[0-9_]+" => Float::with_val(53, Float::parse(<>).unwrap())
 };
+
+match {
+   r"-?\.[0-9_]+"
+} else {
+   r"[A-z][A-z0-9]*",
+   _
+}
