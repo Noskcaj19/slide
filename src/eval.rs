@@ -27,7 +27,10 @@ impl EvalContext {
     fn eval_internal(&mut self, expr: ast::Expr) -> ast::Number {
         use ast::Expr::*;
         match expr {
-            Prev => self.last_result.clone().unwrap(), // TODO: Remove unwrap once expressions are failible
+            Prev => self
+                .last_result
+                .clone()
+                .unwrap_or_else(|| ast::Number::Int(::rug::Integer::from(0))),
             Number(num) => num,
             Error => panic!("Error handling not yet implemented"),
             Op(l, o, r) => self.eval_op(*l.clone(), o, *r.clone()),
