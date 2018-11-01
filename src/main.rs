@@ -23,7 +23,6 @@ fn error_to_range(err: &ast::TErrorRecovery) -> (usize, usize) {
 }
 
 struct SlideContext {
-    input: String,
     line_ctx: LineContext,
     eval_ctx: eval::EvalContext,
 }
@@ -31,27 +30,25 @@ struct SlideContext {
 impl SlideContext {
     fn new() -> SlideContext {
         SlideContext {
-            input: "".to_string(),
             line_ctx: LineContext::new(),
             eval_ctx: eval::EvalContext::new(),
         }
     }
 
     pub fn eval_line(&mut self, input: &str) {
-        self.input = input.to_owned();
         self.line_ctx.history.push(input.clone().into()).unwrap();
         let mut errors = Vec::new();
 
         let expr = match calc::ExprParser::new().parse(&mut errors, input) {
             Err(err) => {
-                self.print_parse_error(err);
+                self.print_parse_error(err, &input);
                 return;
             }
             Ok(expr) => expr,
         };
 
         if errors.len() > 0 {
-            self.print_errors(&errors);
+            self.print_errors(&errors, &input);
         } else {
             println!("=> {}", self.eval(*expr));
         }
@@ -61,11 +58,11 @@ impl SlideContext {
         self.eval_ctx.eval(expr)
     }
 
-    fn print_errors(&self, errs: &[ast::TErrorRecovery]) {
-        println!("=> {}", self.input);
+    fn print_errors(&self, errs: &[ast::TErrorRecovery], input: &str) {
+        println!("=> {}", input);
         for err in errs {
             let (start, end) = match error_to_range(err) {
-                (0, 0) => (self.input.len(), self.input.len()),
+                (0, 0) => (input.len(), input.len()),
                 l => l,
             };
 
@@ -87,11 +84,14 @@ impl SlideContext {
         }
     }
 
-    fn print_parse_error(&self, error: ast::TParseError) {
-        self.print_errors(&[lalrpop_util::ErrorRecovery {
-            error,
-            dropped_tokens: vec![],
-        }])
+    fn print_parse_error(&self, error: ast::TParseError, input: &str) {
+        self.print_errors(
+            &[lalrpop_util::ErrorRecovery {
+                error,
+                dropped_tokens: vec![],
+            }],
+            input,
+        )
     }
 
     // TODO: Currently a hack
@@ -112,12 +112,11 @@ impl SlideContext {
 }
 
 fn main() {
-    let mut input;
     let mut line_ctx = LineContext::new();
     let mut slide_ctx = SlideContext::new();
 
     loop {
-        input = match line_ctx.read_line("> ", &mut |e| slide_ctx.handle_event(e)) {
+        let input = match line_ctx.read_line("> ", &mut |e| slide_ctx.handle_event(e)) {
             Ok(line) => line,
             Err(ref e) if e.kind() == std::io::ErrorKind::Interrupted => {
                 // ctrl-c
