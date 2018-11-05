@@ -66,6 +66,7 @@ LetBinding: Node = {
 InfixExpr: Node = {
     AtomicExpr,
 
+    <lhs:AtomicExpr> "(" <rhs:InfixExpr> ")" => Node::Infix { lhs: Box::new(lhs), op: "*".to_string(), rhs: Box::new(rhs) },
     <lhs:AtomicExpr> <op:"operator"> <rhs:InfixExpr> => Node::Infix { lhs: Box::new(lhs), op: op.to_string(), rhs: Box::new(rhs) },
 };
 
