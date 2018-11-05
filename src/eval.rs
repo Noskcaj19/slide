@@ -38,9 +38,9 @@ impl EvalContext {
         use crate::ast::Node::*;
         match node {
             Prev => self.last_result.clone().unwrap_or_default(),
-            Ident(key) => self.values.get(&key).cloned().unwrap(),
+            Ident(key) => self.values.get(&key).cloned().unwrap_or_default(),
             Number(num) => num,
-            Error => panic!("Error handling not yet implemented"),
+            Error => panic!("Evaluation of invalid ast"),
             Infix { lhs, op, rhs } => self.eval_op(*lhs, op, *rhs),
             Let(key, node) => {
                 let value = self.eval_internal(*node);
