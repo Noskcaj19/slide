@@ -1,0 +1,35 @@
+// Ident
+ident_char = { ASCII_ALPHA | ASCII_DIGIT | "_" }
+ident_start = { ASCII_ALPHA | "_" }
+
+ident = @{ ident_start ~ ident_char* }
+
+// Numbers
+// NOTE: All numbers are parsed as positive
+// Sign is determined by the reparser
+digit = _{ ASCII_DIGIT | "_" }
+
+// Integer
+integer = { digit+ }
+
+// Float
+float = { digit* ~ "." ~ digit* }
+
+number = _{ float | integer }
+
+// Operator
+operator = { "+" | "-" | "**" | "*" | "/" | "!" | "%" }
+
+// Keyword
+keyword = { "let" | "#" }
+
+symbol = { "=" }
+
+
+grouping_char = { "(" | ")" | "[" | "]" | "{" | "}" }
+
+token = _{ keyword | symbol | ident | number | operator | grouping_char }
+
+seperator = { " " | "," | ";" | NEWLINE }
+
+token_list = { SOI ~ token ~ (seperator? ~ token)* ~ NEWLINE*? ~ EOI }

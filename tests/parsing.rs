@@ -1,7 +1,5 @@
-extern crate slide;
-
-use slide::rug::{Float as RFloat, Integer};
-use slide::{
+use crate::slide::rug::{Float as RFloat, Integer};
+use crate::slide::{
     ast::{
         Expr::{self, *},
         Number,

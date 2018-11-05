@@ -1,0 +1,84 @@
+use crate::ast::{self, Node, TErrorRecovery};
+use crate::token::{Token};
+
+grammar<'input, 'err>(errors: &'err mut Vec<TErrorRecovery<'input>>);
+
+Sep<T, S>: Vec<T> = {
+    <v:(<T> S)*> <e:T?> => match e {
+        None=> v,
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+    }
+};
+
+
+extern {
+    type Location = usize;
+    type Error = ast::Error;
+
+    enum Token<'input> {
+        "ident" => Token::Ident(<&'input str>),
+        "int literal" => Token::Integer(<rug::Integer>),
+        "float literal" => Token::Float(<rug::Float>),
+
+        "operator" => Token::Operator(<&'input str>),
+
+        "let" => Token::Let,
+        "#" => Token::Prev,
+
+        "," => Token::Comma,
+        ";" => Token::Semicolon,
+        "=" => Token::Equals,
+
+        "(" => Token::LParen,
+        ")" => Token::RParen,
+        "[" => Token::LBracket,
+        "]" => Token::RBracket,
+        "{" => Token::LBrace,
+        "}" => Token::RBrace,
+    }
+}
+
+Integer: Node = "int literal" => Node::Number(<>.into());
+Float: Node = "float literal" => Node::Number(<>.into());
+
+Number = {
+    Integer,
+    Float,
+};
+
+AtomicExpr: Node = {
+    "(" <Node> ")",
+    "[" <Node> "]",
+
+    "ident" => Node::Ident(<>.to_string()),
+    "#" => Node::Prev,
+    Number,
+};
+
+LetBinding: Node = {
+    "let" <lhs:"ident"> "=" <rhs:Node> => Node::Let(lhs.to_owned(), Box::new(rhs)),
+};
+
+InfixExpr: Node = {
+    AtomicExpr,
+
+    <lhs:AtomicExpr> <op:"operator"> <rhs:AtomicExpr> => Node::Infix { lhs: Box::new(lhs), op: op.to_string(), rhs: Box::new(rhs) },
+};
+
+
+pub Node = {
+    LetBinding,
+
+    InfixExpr,
+
+    ! => {
+        errors.push(<>);
+        Node::Error
+    }
+};
+
+pub Nodes = Sep<Node, ";">;
