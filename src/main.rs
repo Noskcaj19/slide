@@ -1,20 +1,25 @@
-use rustyline::{error::ReadlineError, CompletionType, Config, Editor};
+use rustyline::{error::ReadlineError, Config, Editor};
+
+mod prompt_helper;
 
 use slide::*;
 
 struct SlideContext {
-    editor_ctx: Editor<()>,
+    editor_ctx: Editor<prompt_helper::MathHelper>,
     eval_ctx: eval::EvalContext,
 }
 
 impl SlideContext {
     fn new() -> SlideContext {
+        let helper = prompt_helper::MathHelper;
         let config = Config::builder()
             .history_ignore_space(true)
             .auto_add_history(true)
             .build();
+        let mut editor = Editor::with_config(config);
+        editor.set_helper(Some(helper));
         SlideContext {
-            editor_ctx: Editor::with_config(config),
+            editor_ctx: editor,
             eval_ctx: eval::EvalContext::new(),
         }
     }
