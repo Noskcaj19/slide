@@ -17,7 +17,7 @@ lalrpop_mod!(
     grammar
 );
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Node {
     Number(Number),
 
@@ -39,6 +39,17 @@ pub fn parse<'input, 'err>(
     tokens: Vec<Result<(usize, crate::token::Token<'input>, usize), Error>>,
 ) -> Result<Vec<Node>, TParseError<'input>> {
     let ast = grammar::NodesParser::new().parse(errors, tokens.into_iter())?;
+
+    // TODO: Reparse
+
+    Ok(ast)
+}
+
+pub fn parse_single<'input, 'err>(
+    errors: &'err mut Vec<TErrorRecovery<'input>>,
+    tokens: Vec<Result<(usize, crate::token::Token<'input>, usize), Error>>,
+) -> Result<Node, TParseError<'input>> {
+    let ast = grammar::NodeParser::new().parse(errors, tokens.into_iter())?;
 
     // TODO: Reparse
 
