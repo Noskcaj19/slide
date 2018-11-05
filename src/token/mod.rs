@@ -9,6 +9,8 @@ struct Lex;
 pub enum Error<'input> {
     PestErr(PestError<Rule>),
     InvalidInteger,
+    InvalidHex,
+    InvalidBinary,
     InvalidFloat,
     UnknownKeyword,
     UnknownGrouping,
@@ -101,9 +103,44 @@ pub fn tokenize(input: &str) -> Result<Vec<SpannedToken>, SpannedError> {
             Rule::ident => SpannedToken::new(Token::Ident(token.as_str()), token.as_span()),
             Rule::integer => {
                 let stripped_int = token.as_str().replace('_', "");
-                let int: rug::Integer = match stripped_int.parse() {
-                    Ok(i) => i,
-                    Err(_) => return SpannedError::spanned(Error::InvalidInteger, token.as_span()),
+                let int_token = match token.into_inner().next() {
+                    Some(tok) => tok,
+                    None => panic!("Probably not valid state"),
+                };
+
+                let int = match int_token.as_rule() {
+                    Rule::decimal_int => match stripped_int.parse() {
+                        Ok(i) => i,
+                        Err(_) => {
+                            return SpannedError::spanned(Error::InvalidInteger, int_token.as_span())
+                        }
+                    },
+                    Rule::hex_int => {
+                        let stripped_int = if let Some('x') = stripped_int.chars().skip(1).next() {
+                            &stripped_int[2..]
+                        } else {
+                            &stripped_int[..stripped_int.len() - 1]
+                        };
+                        match rug::Integer::from_str_radix(stripped_int, 16) {
+                            Ok(int) => int,
+                            Err(_) => {
+                                return SpannedError::spanned(Error::InvalidHex, int_token.as_span())
+                            }
+                        }
+                    }
+                    Rule::binary_int => {
+                        let stripped_int = &stripped_int[2..];
+                        match rug::Integer::from_str_radix(stripped_int, 2) {
+                            Ok(int) => int,
+                            Err(_) => {
+                                return SpannedError::spanned(
+                                    Error::InvalidBinary,
+                                    int_token.as_span(),
+                                )
+                            }
+                        }
+                    }
+                    _ => unreachable!(),
                 };
                 let mult = if detect_negative(&output_tokens) {
                     // Remove the negative sign from the generated tokens
@@ -113,8 +150,36 @@ pub fn tokenize(input: &str) -> Result<Vec<SpannedToken>, SpannedError> {
                     1
                 };
                 let tok = Token::Integer(int * mult);
-                SpannedToken::new(tok, token.as_span())
+                SpannedToken::new(tok, int_token.as_span())
             }
+            // Rule::integer => {
+            //     let stripped_int = token.as_str().replace('_', "");
+            //     let stripped_int = match stripped_int.chars().skip(1).next() {
+            //         Some('x') | Some('b') => &stripped_int[2..],
+            //         _ => &stripped_int,
+            //     };
+            //     let stripped_int = match stripped_int
+            //         .chars()
+            //         .skip(stripped_int.len().saturating_sub(1))
+            //         .next()
+            //     {
+            //         Some('h') => &stripped_int[..stripped_int.len() - 1],
+            //         _ => &stripped_int,
+            //     };
+            //     let int: rug::Integer = match stripped_int.parse() {
+            //         Ok(i) => i,
+            //         Err(_) => return SpannedError::spanned(Error::InvalidInteger, token.as_span()),
+            //     };
+            //     let mult = if detect_negative(&output_tokens) {
+            //         // Remove the negative sign from the generated tokens
+            //         output_tokens.remove(output_tokens.len() - 1);
+            //         -1
+            //     } else {
+            //         1
+            //     };
+            //     let tok = Token::Integer(int * mult);
+            //     SpannedToken::new(tok, token.as_span())
+            // }
             Rule::float => {
                 let stripped_float = token.as_str().replace('_', "");
                 let incomplete_float = match rug::Float::parse(stripped_float) {
@@ -180,6 +245,10 @@ pub fn tokenize(input: &str) -> Result<Vec<SpannedToken>, SpannedError> {
             | Rule::ident_start
             | Rule::digit
             | Rule::number
+            | Rule::hex_digit
+            | Rule::hex_int
+            | Rule::binary_int
+            | Rule::decimal_int
             | Rule::token_list => unreachable!(),
         };
         output_tokens.push(tok);

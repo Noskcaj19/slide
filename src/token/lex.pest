@@ -10,7 +10,14 @@ ident = @{ ident_start ~ ident_char* }
 digit = _{ ASCII_DIGIT | "_" }
 
 // Integer
-integer = { digit+ }
+hex_digit = _{ ASCII_HEX_DIGIT | "_" }
+hex_int =  { (hex_digit+ ~ "h") | "0x" ~ hex_digit+ }
+
+binary_int = { "0b" ~ ("0" | "1")+ }
+
+decimal_int = { digit+ }
+
+integer = { hex_int | binary_int | decimal_int}
 
 // Float
 float = { digit* ~ "." ~ digit* }
@@ -28,7 +35,7 @@ symbol = { "=" }
 
 grouping_char = { "(" | ")" | "[" | "]" | "{" | "}" }
 
-token = _{ keyword | symbol | ident | number | operator | grouping_char }
+token = _{ keyword | symbol | number | ident | operator | grouping_char }
 
 seperator = { " " | "," | ";" | NEWLINE }
 
