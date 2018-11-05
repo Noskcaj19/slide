@@ -1,24 +1,25 @@
-use liner::{Context as LineContext, Event, EventKind};
-use termion::event::Key;
+use rustyline::{error::ReadlineError, CompletionType, Config, Editor};
 
 use slide::*;
 
 struct SlideContext {
-    line_ctx: LineContext,
+    editor_ctx: Editor<()>,
     eval_ctx: eval::EvalContext,
 }
 
 impl SlideContext {
     fn new() -> SlideContext {
+        let config = Config::builder()
+            .history_ignore_space(true)
+            .auto_add_history(true)
+            .build();
         SlideContext {
-            line_ctx: LineContext::new(),
+            editor_ctx: Editor::with_config(config),
             eval_ctx: eval::EvalContext::new(),
         }
     }
 
     pub fn eval_line(&mut self, input: &str) {
-        self.line_ctx.history.push(input.into()).unwrap();
-
         let tokens = match token::tokenize(input) {
             Ok(tokens) => tokens,
             Err(e) => {
@@ -94,33 +95,15 @@ impl SlideContext {
             input,
         )
     }
-
-    // TODO: Currently a hack
-    fn handle_event<W: std::io::Write>(&mut self, event: Event<W>) {
-        if event.editor.cursor() != 0 {
-            return;
-        }
-        if let EventKind::BeforeKey(Key::Char(ch)) = event.kind {
-            match ch {
-                '>' | '<' | '-' | '+' | '*' | '(' | '/' => {
-                    event.editor.insert_str_after_cursor("#").unwrap();
-                }
-                _ => {}
-            }
-        };
-    }
 }
 
 fn main() {
-    let mut line_ctx = LineContext::new();
     let mut slide_ctx = SlideContext::new();
 
     loop {
-        let input = match line_ctx.read_line("<< ", &mut |e| slide_ctx.handle_event(e)) {
+        let input = match slide_ctx.editor_ctx.readline("<< ") {
             Ok(line) => line,
-            Err(ref e) if e.kind() == std::io::ErrorKind::Interrupted => {
-                // ctrl-c
-                // TODO: Figure out how to access the inner value and check it
+            Err(ReadlineError::Interrupted) => {
                 break;
             }
             Err(e) => {
@@ -130,8 +113,6 @@ fn main() {
                 continue;
             }
         };
-        // TODO: Fix this
-        line_ctx.history.push(input.clone().into()).unwrap();
         slide_ctx.eval_line(&input)
     }
 }

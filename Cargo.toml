@@ -7,8 +7,7 @@ edition = "2018"
 [dependencies]
 rug = "1.2.2"
 lalrpop-util = "0.16.1"
-liner = "0.4.4"
-termion = "1.5.1"
+rustyline = "2.1.0"
 
 [dependencies.parsing]
 path = "parsing"
