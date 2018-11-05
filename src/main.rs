@@ -1,7 +1,7 @@
 use liner::{Context as LineContext, Event, EventKind};
 use termion::event::Key;
 
-use slide::{ast, eval, token};
+use slide::*;
 
 struct SlideContext {
     line_ctx: LineContext,
@@ -54,7 +54,7 @@ impl SlideContext {
     }
 
     fn print_errors(&self, errs: &[ast::TErrorRecovery], input: &str) {
-        println!("=> {}", input);
+        let mut dump = true;
         for err in errs {
             let (start, end) = match error_to_range(err) {
                 (0, 0) => (input.len(), input.len()),
@@ -70,11 +70,17 @@ impl SlideContext {
                     "~".repeat(end.saturating_sub(start))
                 )
             }
+            if let Some(human_err) = error::try_humanize(err) {
+                println!("=# {}", human_err);
+                dump = false;
+            }
         }
-        for err in errs {
-            println!("=# =====");
-            for l in format!("{:#?}", err).lines() {
-                println!("=# {}", l);
+        if dump {
+            for err in errs {
+                println!("=# =====");
+                for l in format!("{:#?}", err).lines() {
+                    println!("=# {}", l);
+                }
             }
         }
     }
