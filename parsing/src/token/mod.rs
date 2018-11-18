@@ -152,34 +152,6 @@ pub fn tokenize(input: &str) -> Result<Vec<SpannedToken>, SpannedError> {
                 let tok = Token::Integer(int * mult);
                 SpannedToken::new(tok, int_token.as_span())
             }
-            // Rule::integer => {
-            //     let stripped_int = token.as_str().replace('_', "");
-            //     let stripped_int = match stripped_int.chars().skip(1).next() {
-            //         Some('x') | Some('b') => &stripped_int[2..],
-            //         _ => &stripped_int,
-            //     };
-            //     let stripped_int = match stripped_int
-            //         .chars()
-            //         .skip(stripped_int.len().saturating_sub(1))
-            //         .next()
-            //     {
-            //         Some('h') => &stripped_int[..stripped_int.len() - 1],
-            //         _ => &stripped_int,
-            //     };
-            //     let int: rug::Integer = match stripped_int.parse() {
-            //         Ok(i) => i,
-            //         Err(_) => return SpannedError::spanned(Error::InvalidInteger, token.as_span()),
-            //     };
-            //     let mult = if detect_negative(&output_tokens) {
-            //         // Remove the negative sign from the generated tokens
-            //         output_tokens.remove(output_tokens.len() - 1);
-            //         -1
-            //     } else {
-            //         1
-            //     };
-            //     let tok = Token::Integer(int * mult);
-            //     SpannedToken::new(tok, token.as_span())
-            // }
             Rule::float => {
                 let stripped_float = token.as_str().replace('_', "");
                 let incomplete_float = match rug::Float::parse(stripped_float) {
