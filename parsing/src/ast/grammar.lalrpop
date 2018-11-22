@@ -50,36 +50,44 @@ Number = {
     Float,
 };
 
-AtomicExpr: Node = {
-    "(" <Node> ")",
-    "[" <Node> "]",
-
-    "ident" => Node::Ident(<>.to_string()),
-    "#" => Node::Prev,
-    Number,
-};
-
-LetBinding: Node = {
-    "let" <lhs:"ident"> "=" <rhs:Node> => Node::Let(lhs.to_owned(), Box::new(rhs)),
-};
-
-InfixExpr: Node = {
-    AtomicExpr,
-
-    <lhs:AtomicExpr> "(" <rhs:Node> ")" => Node::Infix { lhs: Box::new(lhs), op: "*".to_string(), rhs: Box::new(rhs) },
-    <lhs:AtomicExpr> <op:"operator"> <rhs:Node> => Node::Infix { lhs: Box::new(lhs), op: op.to_string(), rhs: Box::new(rhs) },
-};
-
-
-pub Node = {
-    LetBinding,
-
+pub Node: Node = {
     InfixExpr,
 
     ! => {
         errors.push(<>);
         Node::Error
-    }
+    }   
+};
+
+InfixExpr: Node = {
+    <lhs:InfixExpr> <op:"operator"> <rhs:PrimaryExpr> =>
+        Node::Infix {
+            lhs: Box::new(lhs),
+            op: op.to_string(),
+            rhs: Box::new(rhs)
+        },
+    <lhs:InfixExpr> "(" <rhs:PrimaryExpr> ")" =>
+        Node::Infix {
+            lhs: Box::new(lhs),
+            op: "*".to_string(),
+            rhs: Box::new(rhs)
+        },
+    PrimaryExpr,
+};
+
+LetBinding: Node = {
+    "let" <ident:"ident"> "=" <val:PrimaryExpr> =>  Node::Let(ident.to_owned(), Box::new(val)),
+};
+
+PrimaryExpr: Node = {
+    "(" <Node> ")" => <>,
+    "[" <Node> "]" => <>,
+
+    LetBinding,
+
+    "#" => Node::Prev,
+    "ident" => Node::Ident(<>.to_string()),
+    Number,
 };
 
 pub Nodes = Sep<Node, ";">;
