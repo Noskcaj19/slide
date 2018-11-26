@@ -39,4 +39,4 @@ token = _{ keyword | symbol | number | ident | operator | grouping_char }
 
 seperator = { " " | "," | ";" | NEWLINE }
 
-token_list = { SOI ~ token ~ (seperator* ~ token)* ~ NEWLINE*? ~ EOI }
+token_list = { SOI ~ token ~ (seperator* ~ token)* ~ seperator* ~ EOI }
