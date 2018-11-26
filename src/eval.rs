@@ -97,7 +97,7 @@ impl EvalContext {
     fn eval_internal(&mut self, node: Node) -> Number {
         use crate::ast::Node::*;
         match node {
-            Prev => self.last_result.clone().unwrap_or_default(),
+            Prev => self.last_result.take().unwrap_or_default(),
             Ident(key) => self.lookup_ident(&key),
             Number(num) => num,
             Infix { lhs, op, rhs } => self.eval_op(*lhs, op, *rhs),
