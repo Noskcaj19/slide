@@ -40,6 +40,8 @@ extern {
         "]" => Token::RBracket,
         "{" => Token::LBrace,
         "}" => Token::RBrace,
+        "<" => Token::LAngleBracket,
+        ">" => Token::RAngleBracket,
     }
 }
 
@@ -81,12 +83,19 @@ LetBinding: Node = {
 };
 
 FunctionDef: Node = {
-    "fn" <name:"ident"> "(" <args: Sep<"ident", ",">> ")" "{" <body: Sep<Node, ";">> "}"  => Node::FunctionDef {
+    "fn" <name:"ident"> "<" <args: Sep<"ident", ",">> ">" "{" <body: Sep<Node, ";">> "}"  => Node::FunctionDef {
         name: name.to_string(),
         args: args.iter().map(|a| a.to_string()).collect(),
-        body: vec![],
+        body,
     },
 };
+
+FunctionCall: Node = {
+    <name:"ident"> "<" <args: Sep<Node, ",">> ">" => Node::FunctionCall {
+        name: name.to_string(),
+        args,
+    }
+}
 
 Ident: Node = {
     "ident" => Node::Ident(<>.to_string()),
@@ -97,6 +106,7 @@ PrimaryExpr: Node = {
     "[" <Node> "]" => <>,
 
     LetBinding,
+    FunctionCall,
     FunctionDef,
 
     "#" => Node::Prev,

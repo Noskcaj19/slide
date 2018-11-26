@@ -33,7 +33,7 @@ keyword = { "let" | "fn" | "#" }
 symbol = { "=" }
 
 
-grouping_char = { "(" | ")" | "[" | "]" | "{" | "}" }
+grouping_char = { "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">" }
 
 token = _{ keyword | symbol | number | ident | operator | grouping_char }
 

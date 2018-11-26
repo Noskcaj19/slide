@@ -38,9 +38,12 @@ pub enum Token<'input> {
     LParen,
     RParen,
     LBracket,
+
     RBracket,
     LBrace,
     RBrace,
+    LAngleBracket,
+    RAngleBracket,
 }
 
 /// A span holding the start and end of a token
@@ -191,6 +194,8 @@ pub fn tokenize(input: &str) -> Result<Vec<SpannedToken>, SpannedError> {
                     "]" => Token::RBracket,
                     "{" => Token::LBrace,
                     "}" => Token::RBrace,
+                    "<" => Token::LAngleBracket,
+                    ">" => Token::RAngleBracket,
                     _ => return SpannedError::spanned(Error::UnknownGrouping, token.as_span()),
                 };
                 SpannedToken::new(tok, token.as_span())

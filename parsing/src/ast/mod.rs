@@ -33,6 +33,10 @@ pub enum Node {
         args: Vec<String>,
         body: Vec<Node>,
     },
+    FunctionCall {
+        name: String,
+        args: Vec<Node>,
+    },
 
     Let(String, Box<Node>),
     Prev,
