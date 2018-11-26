@@ -62,6 +62,20 @@ macro_rules! impl_op {
     };
 }
 
+macro_rules! impl_upgrading_method {
+    ($($op:ident),*) => {
+        $(
+            pub fn $op(self) -> Self {
+                use self::Number::*;
+                match self {
+                    Int(v) => Number::Float(RFloat::with_val(53, v).$op()),
+                    Float(v) => Number::Float(v.$op()),
+                }
+            }
+        )*
+    };
+}
+
 impl Div for Number {
     type Output = Self;
 
@@ -160,3 +174,7 @@ impl Shr<Number> for Number {
 impl_op!(Add, add, +);
 impl_op!(Sub, sub, -);
 impl_op!(Mul, mul, *);
+
+impl Number {
+    impl_upgrading_method!(sin, cos, tan);
+}

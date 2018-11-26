@@ -30,7 +30,7 @@ pub enum Node {
     },
     FunctionDef {
         name: String,
-        args: Vec<String>,
+        params: Vec<String>,
         body: Vec<Node>,
     },
     FunctionCall {

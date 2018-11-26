@@ -83,9 +83,9 @@ LetBinding: Node = {
 };
 
 FunctionDef: Node = {
-    "fn" <name:"ident"> "<" <args: Sep<"ident", ",">> ">" "{" <body: Sep<Node, ";">> "}"  => Node::FunctionDef {
+    "fn" <name:"ident"> "<" <params: Sep<"ident", ",">> ">" "{" <body: Sep<Node, ";">> "}"  => Node::FunctionDef {
         name: name.to_string(),
-        args: args.iter().map(|a| a.to_string()).collect(),
+        params: params.iter().map(|p| p.to_string()).collect(),
         body,
     },
 };
