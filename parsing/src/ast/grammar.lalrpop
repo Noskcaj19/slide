@@ -27,6 +27,7 @@ extern {
         "operator" => Token::Operator(<&'input str>),
 
         "let" => Token::Let,
+        "fn" => Token::Fun,
         "#" => Token::Prev,
 
         "," => Token::Comma,
@@ -76,7 +77,19 @@ InfixExpr: Node = {
 };
 
 LetBinding: Node = {
-    "let" <ident:"ident"> "=" <val:PrimaryExpr> =>  Node::Let(ident.to_owned(), Box::new(val)),
+    "let" <ident:"ident"> "=" <val:PrimaryExpr> => Node::Let(ident.to_owned(), Box::new(val)),
+};
+
+FunctionDef: Node = {
+    "fn" <name:"ident"> "(" <args: Sep<"ident", ",">> ")" "{" <body: Sep<Node, ";">> "}"  => Node::FunctionDef {
+        name: name.to_string(),
+        args: args.iter().map(|a| a.to_string()).collect(),
+        body: vec![],
+    },
+};
+
+Ident: Node = {
+    "ident" => Node::Ident(<>.to_string()),
 };
 
 PrimaryExpr: Node = {
@@ -84,9 +97,10 @@ PrimaryExpr: Node = {
     "[" <Node> "]" => <>,
 
     LetBinding,
+    FunctionDef,
 
     "#" => Node::Prev,
-    "ident" => Node::Ident(<>.to_string()),
+    Ident,
     Number,
 };
 

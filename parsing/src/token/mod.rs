@@ -28,6 +28,7 @@ pub enum Token<'input> {
     Operator(&'input str),
 
     Let,
+    Fun,
     Prev,
 
     Comma,
@@ -176,6 +177,7 @@ pub fn tokenize(input: &str) -> Result<Vec<SpannedToken>, SpannedError> {
             Rule::keyword => {
                 let tok = match token.as_str() {
                     "let" => Token::Let,
+                    "fn" => Token::Fun,
                     "#" => Token::Prev,
                     _ => return SpannedError::spanned(Error::UnknownKeyword, token.as_span()),
                 };

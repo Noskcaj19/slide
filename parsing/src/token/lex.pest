@@ -28,7 +28,7 @@ number = _{ float | integer }
 operator = { "+" | "-" | "**" | "*" | "/" | "!" | "%" }
 
 // Keyword
-keyword = { "let" | "#" }
+keyword = { "let" | "fn" | "#" }
 
 symbol = { "=" }
 

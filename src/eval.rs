@@ -5,9 +5,15 @@ use rug::ops::Pow;
 
 use crate::ast::{Node, Number};
 
+struct Function {
+    args: Vec<String>,
+    body: Vec<Node>,
+}
+
 pub struct EvalContext {
     pub last_result: Option<Number>,
     values: HashMap<String, Number>,
+    functions: HashMap<String, Function>,
 }
 
 impl EvalContext {
@@ -18,6 +24,7 @@ impl EvalContext {
         EvalContext {
             last_result: None,
             values,
+            functions: HashMap::new(),
         }
     }
 
@@ -46,6 +53,10 @@ impl EvalContext {
                 let value = self.eval_internal(*node);
                 self.values.insert(key, value.clone());
                 value
+            }
+            FunctionDef { name, args, body } => {
+                self.functions.insert(name, Function { args, body });
+                Default::default()
             }
         }
     }

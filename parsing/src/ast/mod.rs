@@ -28,6 +28,11 @@ pub enum Node {
         op: String,
         rhs: Box<Node>,
     },
+    FunctionDef {
+        name: String,
+        args: Vec<String>,
+        body: Vec<Node>,
+    },
 
     Let(String, Box<Node>),
     Prev,
