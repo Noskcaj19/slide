@@ -66,7 +66,20 @@ impl EvalContext {
     fn eval_function(&mut self, name: &str, args: Vec<Node>) -> Number {
         let func = match self.functions.get(name) {
             Some(func) => func.clone(),
-            None => return Default::default(),
+            None => {
+                // Really hacky
+                if let Number::Int(ptr) = self.lookup_ident(name) {
+                    if ptr > 0xFFFF {
+                        let fn_ptr =
+                            ptr.to_usize().expect("Pointer deref too big") as *const Function;
+                        unsafe { (&*fn_ptr).clone() }
+                    } else {
+                        return Default::default();
+                    }
+                } else {
+                    return Default::default();
+                }
+            }
         };
         match func {
             Function::Builtin(name) => match name.as_str() {
@@ -107,9 +120,11 @@ impl EvalContext {
                 value
             }
             FunctionDef { name, params, body } => {
-                self.functions
-                    .insert(name, Function::UserDefined { params, body });
-                Default::default()
+                let func = self
+                    .functions
+                    .entry(name)
+                    .or_insert(Function::UserDefined { params, body });
+                self::Number::Int(rug::Integer::from(func as *const Function as usize))
             }
             FunctionCall { name, args } => self.eval_function(&name, args),
             Error => panic!("Evaluation of invalid ast"),
