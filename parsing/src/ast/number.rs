@@ -176,5 +176,5 @@ impl_op!(Sub, sub, -);
 impl_op!(Mul, mul, *);
 
 impl Number {
-    impl_upgrading_method!(sin, cos, tan);
+    impl_upgrading_method!(sin, cos, tan, asin, acos, atan, csc, sec, cot);
 }

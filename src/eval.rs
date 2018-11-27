@@ -5,6 +5,16 @@ use rug::ops::Pow;
 
 use crate::ast::{Node, Number};
 
+macro_rules! builtin_fns {
+    ($($func:tt),*) => {
+        vec![
+            $(
+                ($func.to_string(), Function::Builtin($func.to_string())),
+            )*
+        ]
+    };
+}
+
 #[derive(Debug, Clone)]
 enum Function {
     Builtin(String),
@@ -26,13 +36,10 @@ impl EvalContext {
         let values = vec![("pi".to_string(), rug::Float::with_val(53, PI).into())]
             .into_iter()
             .collect();
-        let functions = vec![
-            ("sin".to_string(), Function::Builtin("sin".to_string())),
-            ("cos".to_string(), Function::Builtin("cos".to_string())),
-            ("tan".to_string(), Function::Builtin("tan".to_string())),
-        ]
-        .into_iter()
-        .collect();
+        let functions =
+            builtin_fns!("sin", "cos", "tan", "asin", "acos", "atan", "csc", "sec", "cot")
+                .into_iter()
+                .collect();
         EvalContext {
             last_result: None,
             values,
@@ -84,6 +91,14 @@ impl EvalContext {
         match func {
             Function::Builtin(name) => match name.as_str() {
                 "sin" => self.eval_internal(args[0].clone()).sin(),
+                "cos" => self.eval_internal(args[0].clone()).cos(),
+                "tan" => self.eval_internal(args[0].clone()).tan(),
+                "asin" => self.eval_internal(args[0].clone()).asin(),
+                "acos" => self.eval_internal(args[0].clone()).acos(),
+                "atan" => self.eval_internal(args[0].clone()).atan(),
+                "csc" => self.eval_internal(args[0].clone()).csc(),
+                "sec" => self.eval_internal(args[0].clone()).sec(),
+                "cot" => self.eval_internal(args[0].clone()).cot(),
                 _ => Default::default(),
             },
             Function::UserDefined { params, body } => {
