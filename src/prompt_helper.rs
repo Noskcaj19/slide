@@ -28,6 +28,7 @@ impl Hinter for MathHelper {
 fn op_formatter(ch: char) -> String {
     match ch {
         '*' | '/' | '+' | '-' | '%' | '!' => format!("\x1b[1m{}\x1b[0m", ch),
+        '#' => format!("\x1b[31m{}\x1b[0m", ch),
         _ => ch.to_string(),
     }
 }
