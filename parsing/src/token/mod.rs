@@ -41,6 +41,7 @@ pub enum Token<'input> {
     Let,
     Fun,
     Prev,
+    Sh,
 
     Comma,
     Semicolon,
@@ -198,6 +199,7 @@ pub fn tokenize(input: &str) -> Result<Vec<SpannedToken>, SpannedError> {
                     "let" => Token::Let,
                     "fn" => Token::Fun,
                     "#" => Token::Prev,
+                    "$" => Token::Sh,
                     _ => return SpannedError::spanned(Error::UnknownKeyword, token.as_span()),
                 };
                 SpannedToken::new(tok, token.as_span())

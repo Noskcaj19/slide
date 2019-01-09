@@ -39,6 +39,10 @@ pub enum Node {
         args: Vec<Node>,
     },
 
+    ShellCall {
+        cmd: String,
+    },
+
     Let(String, Box<Node>),
     Prev,
     Error,

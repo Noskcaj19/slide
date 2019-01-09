@@ -122,6 +122,24 @@ impl EvalContext {
         }
     }
 
+    fn call_shell_func(&mut self, cmd: &str) -> Number {
+        use std::process::Command;
+        let output = if cfg!(target_os = "windows") {
+            Command::new("cmd")
+                .arg("/C")
+                .arg(cmd)
+                .status()
+                .expect("failed to execute process")
+        } else {
+            Command::new("sh")
+                .arg("-c")
+                .arg(cmd)
+                .status()
+                .expect("failed to execute process")
+        };
+        self::Number::Int(output.code().unwrap_or(0).into())
+    }
+
     fn eval_internal(&mut self, node: Node) -> Number {
         use crate::ast::Node::*;
         match node {
@@ -143,6 +161,7 @@ impl EvalContext {
                 self::Number::Int(rug::Integer::from(func as *const Function as usize))
             }
             FunctionCall { name, args } => self.eval_function(&name, args),
+            ShellCall { cmd } => self.call_shell_func(&cmd),
             Error => panic!("Evaluation of invalid ast"),
         }
     }
