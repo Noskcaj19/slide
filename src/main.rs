@@ -28,7 +28,7 @@ impl SlideContext {
         let tokens = match token::tokenize(input) {
             Ok(tokens) => tokens,
             Err(e) => {
-                println!("Tokenizer error: {:?}", e);
+                self.print_lex_error(e);
                 return;
             }
         };
@@ -99,6 +99,17 @@ impl SlideContext {
             }],
             input,
         )
+    }
+
+    fn print_lex_error(&self, err: parsing::token::SpannedError<'_>) {
+        match err.0 {
+            parsing::token::Error::PestErr(pest_err) => {
+                let (start, _) = parsing::token::span_from_loc(pest_err.location);
+                println!("   {}~", " ".repeat(start));
+                println!("=# Invalid token");
+            }
+            _ => println!("{:#?}", err),
+        }
     }
 }
 

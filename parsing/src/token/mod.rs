@@ -1,5 +1,15 @@
-use pest::{error::Error as PestError, Parser};
+use pest::{
+    error::{Error as PestError, InputLocation},
+    Parser,
+};
 use pest_derive::*;
+
+pub fn span_from_loc(loc: InputLocation) -> (usize, usize) {
+    match loc {
+        InputLocation::Pos(start) => (start, start),
+        InputLocation::Span(s) => s,
+    }
+}
 
 #[derive(Parser)]
 #[grammar = "token/lex.pest"]
