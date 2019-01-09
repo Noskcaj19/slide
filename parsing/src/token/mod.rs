@@ -119,7 +119,7 @@ pub fn tokenize(input: &str) -> Result<Vec<SpannedToken>, SpannedError> {
             Rule::string => {
                 let str = token.as_str();
 
-                SpannedToken::new(Token::StringLit(&str[1..str.len()]), token.as_span())
+                SpannedToken::new(Token::StringLit(&str[1..str.len() - 1]), token.as_span())
             }
             Rule::integer => {
                 let stripped_int = token.as_str().replace('_', "");
