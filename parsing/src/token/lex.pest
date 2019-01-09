@@ -4,6 +4,14 @@ ident_start = { ASCII_ALPHA | "_" }
 
 ident = @{ ident_start ~ ident_char* }
 
+// String
+string = ${ "\"" ~ str_inner ~ "\"" }
+str_inner = @{str_char*}
+str_char = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\")
+}
+
 // Numbers
 // NOTE: All numbers are parsed as positive
 // Sign is determined by the reparser
@@ -35,7 +43,7 @@ symbol = { "=" }
 
 grouping_char = { "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">" }
 
-token = _{ keyword | symbol | number | ident | operator | grouping_char }
+token = _{ keyword | symbol | number | string | ident | operator | grouping_char }
 
 seperator = { " " | "," | ";" | NEWLINE }
 

@@ -128,6 +128,7 @@ impl EvalContext {
             Prev => self.last_result.take().unwrap_or_default(),
             Ident(key) => self.lookup_ident(&key),
             Number(num) => num,
+            String(str) => self::Number::Int(str.bytes().map(usize::from).sum::<usize>().into()),
             Infix { lhs, op, rhs } => self.eval_op(*lhs, op, *rhs),
             Let(key, node) => {
                 let value = self.eval_internal(*node);

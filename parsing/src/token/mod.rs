@@ -32,6 +32,7 @@ pub enum Error<'input> {
 #[derive(Debug, Clone)]
 pub enum Token<'input> {
     Ident(&'input str),
+    StringLit(&'input str),
     Integer(rug::Integer),
     Float(rug::Float),
 
@@ -115,6 +116,11 @@ pub fn tokenize(input: &str) -> Result<Vec<SpannedToken>, SpannedError> {
     for token in tokens {
         let tok = match token.as_rule() {
             Rule::ident => SpannedToken::new(Token::Ident(token.as_str()), token.as_span()),
+            Rule::string => {
+                let str = token.as_str();
+
+                SpannedToken::new(Token::StringLit(&str[1..str.len()]), token.as_span())
+            }
             Rule::integer => {
                 let stripped_int = token.as_str().replace('_', "");
                 let int_token = match token.into_inner().next() {
@@ -233,6 +239,8 @@ pub fn tokenize(input: &str) -> Result<Vec<SpannedToken>, SpannedError> {
             | Rule::ident_char
             | Rule::ident_start
             | Rule::digit
+            | Rule::str_inner
+            | Rule::str_char
             | Rule::number
             | Rule::hex_digit
             | Rule::hex_int

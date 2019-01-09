@@ -21,6 +21,7 @@ extern {
 
     enum Token<'input> {
         "ident" => Token::Ident(<&'input str>),
+        "str literal" => Token::StringLit(<&'input str>),
         "int literal" => Token::Integer(<rug::Integer>),
         "float literal" => Token::Float(<rug::Float>),
 
@@ -52,6 +53,8 @@ Number = {
     Integer,
     Float,
 };
+
+String: Node = "str literal" => Node::String(<>.into());
 
 pub Node: Node = {
     InfixExpr,
@@ -111,6 +114,7 @@ PrimaryExpr: Node = {
 
     "#" => Node::Prev,
     Ident,
+    String,
     Number,
 };
 

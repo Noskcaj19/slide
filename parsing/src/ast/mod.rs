@@ -21,6 +21,7 @@ lalrpop_mod!(
 pub enum Node {
     Number(Number),
 
+    String(String),
     Ident(String),
 
     Infix {
