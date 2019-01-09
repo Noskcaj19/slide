@@ -25,6 +25,9 @@ impl SlideContext {
     }
 
     pub fn eval_line(&mut self, input: &str) {
+        if input.is_empty() {
+            return;
+        }
         let tokens = match token::tokenize(input) {
             Ok(tokens) => tokens,
             Err(e) => {
