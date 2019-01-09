@@ -67,7 +67,7 @@ impl SlideContext {
                 l => l,
             };
 
-            if end.saturating_sub(start) == 0 {
+            if end.saturating_sub(start) <= 1 {
                 println!("   {}^", " ".repeat(start))
             } else {
                 println!(
